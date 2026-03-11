@@ -7,34 +7,58 @@
  * @author Yogesh R Mehta
  * @version 11.1
  */
-
 import java.util.*;
+class Reservation {
+    private String guestName;
+    private String roomType;
 
+    public Reservation(String guestName, String roomType) {
+        this.guestName = guestName;
+        this.roomType = roomType;
+    }
+
+    public String getGuestName() {
+        return guestName;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+}
 class RoomInventory {
-    private Map<String, Integer> inventory = new HashMap<>();
+    private Map<String, Integer> availability;
+
+    public RoomInventory() {
+        availability = new HashMap<>();
+    }
 
     public synchronized void addRoomType(String roomType, int count) {
-        inventory.put(roomType, count);
+        availability.put(roomType, count);
     }
 
-    public synchronized boolean isAvailable(String roomType) {
-        return inventory.getOrDefault(roomType, 0) > 0;
+    public synchronized int getAvailability(String roomType) {
+        return availability.getOrDefault(roomType, 0);
     }
 
-    public synchronized void decrementAvailability(String roomType) {
-        if (isAvailable(roomType)) {
-            inventory.put(roomType, inventory.get(roomType) - 1);
+    // Synchronized method ensures thread-safe updates
+    public synchronized boolean allocateRoom(String roomType) {
+        int current = getAvailability(roomType);
+        if (current > 0) {
+            availability.put(roomType, current - 1);
+            return true;
         }
+        return false;
     }
 
     public synchronized void displayInventory() {
-        System.out.println("Current Inventory:");
-        for (String type : inventory.keySet()) {
-            System.out.println(type + " -> " + inventory.get(type));
+        System.out.println("\n=== Current Room Inventory ===");
+        for (Map.Entry<String, Integer> entry : availability.entrySet()) {
+            System.out.println(entry.getKey() + " - Available: " + entry.getValue());
         }
     }
 }
 
+// BookingService class handling allocation
 class BookingService {
     private RoomInventory inventory;
 
@@ -42,41 +66,77 @@ class BookingService {
         this.inventory = inventory;
     }
 
-    public synchronized void confirmBooking(String guestName, String roomType) {
-        if (!inventory.isAvailable(roomType)) {
-            System.out.println("Booking failed for " + guestName + " | Room: " + roomType);
-            return;
+    public void processRequest(Reservation reservation) {
+        synchronized (inventory) { // Critical section
+            if (inventory.allocateRoom(reservation.getRoomType())) {
+                System.out.println("Reservation confirmed for " + reservation.getGuestName() +
+                                   " | Room Type: " + reservation.getRoomType());
+            } else {
+                System.out.println("Reservation failed for " + reservation.getGuestName() +
+                                   " | Room Type: " + reservation.getRoomType() +
+                                   " | Reason: No availability");
+            }
         }
-        String roomId = UUID.randomUUID().toString();
-        inventory.decrementAvailability(roomType);
-        System.out.println("Booking confirmed: Guest " + guestName +
-                " | Room Type: " + roomType +
-                " | Room ID: " + roomId);
     }
 }
 
-// Thread class to simulate concurrent booking
-class BookingThread extends Thread {
-    private BookingService bookingService;
-    private String guestName;
-    private String roomType;
+// Runnable task for concurrent booking
+class BookingTask implements Runnable {
+    private BookingService service;
+    private Reservation reservation;
 
-    public BookingThread(BookingService bookingService, String guestName, String roomType) {
-        this.bookingService = bookingService;
-        this.guestName = guestName;
-        this.roomType = roomType;
+    public BookingTask(BookingService service, Reservation reservation) {
+        this.service = service;
+        this.reservation = reservation;
     }
 
     @Override
     public void run() {
-        bookingService.confirmBooking(guestName, roomType);
+        service.processRequest(reservation);
     }
 }
 
-// Main application
-public class BookMyStayApp {
+// Application entry point
+public class UseCase11ConcurrentBookingSimulation {
     public static void main(String[] args) {
-        System.out.println("=====================================");
-        System.out.println("   Book My Stay App - UC11");
-        System.out.println("   Version: 11.1");
-        System.out.println("================================
+        System.out.println("Welcome to Book My Stay!");
+        System.out.println("Application: Hotel Booking Management System");
+        System.out.println("Version: 11.0\n");
+
+        // Initialize inventory
+        RoomInventory inventory = new RoomInventory();
+        inventory.addRoomType("Single Room", 2);
+        inventory.addRoomType("Double Room", 1);
+
+        // Initialize booking service
+        BookingService service = new BookingService(inventory);
+
+        // Simulate multiple guests booking concurrently
+        Thread t1 = new Thread(new BookingTask(service, new Reservation("Alice", "Single Room")));
+        Thread t2 = new Thread(new BookingTask(service, new Reservation("Bob", "Single Room")));
+        Thread t3 = new Thread(new BookingTask(service, new Reservation("Charlie", "Single Room"))); // Should fail
+        Thread t4 = new Thread(new BookingTask(service, new Reservation("Diana", "Double Room")));
+        Thread t5 = new Thread(new BookingTask(service, new Reservation("Ethan", "Double Room"))); // Should fail
+
+        // Start threads
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+
+        // Wait for all threads to finish
+        try {
+            t1.join();
+            t2.join();
+            t3.join();
+            t4.join();
+            t5.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Display final inventory state
+        inventory.displayInventory();
+    }
+}
