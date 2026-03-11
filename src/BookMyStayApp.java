@@ -1,33 +1,65 @@
 /**
  * BookMyStayApp.java
  * -----------------------------------
- * UC11: Concurrent Booking Simulation (Thread Safety)
- * Demonstrates synchronized booking under multi-threaded conditions.
+ * UC12: Data Persistence & System Recovery
+ * Demonstrates saving and restoring system state using serialization.
  *
  * @author Yogesh R Mehta
- * @version 11.1
+ * @version 12.1
  */
 
+import java.io.*;
 import java.util.*;
 
-class RoomInventory {
+// Reservation class
+class Reservation implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String reservationId;
+    private String guestName;
+    private String roomType;
+
+    public Reservation(String guestName, String roomType) {
+        this.reservationId = UUID.randomUUID().toString();
+        this.guestName = guestName;
+        this.roomType = roomType;
+    }
+
+    public String getReservationId() { return reservationId; }
+    public String getGuestName() { return guestName; }
+    public String getRoomType() { return roomType; }
+
+    @Override
+    public String toString() {
+        return "Reservation [ID: " + reservationId +
+                ", Guest: " + guestName +
+                ", Room: " + roomType + "]";
+    }
+}
+
+// Inventory class
+class RoomInventory implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Map<String, Integer> inventory = new HashMap<>();
 
-    public synchronized void addRoomType(String roomType, int count) {
+    public void addRoomType(String roomType, int count) {
         inventory.put(roomType, count);
     }
 
-    public synchronized boolean isAvailable(String roomType) {
+    public boolean isAvailable(String roomType) {
         return inventory.getOrDefault(roomType, 0) > 0;
     }
 
-    public synchronized void decrementAvailability(String roomType) {
+    public void decrementAvailability(String roomType) {
         if (isAvailable(roomType)) {
             inventory.put(roomType, inventory.get(roomType) - 1);
         }
     }
 
-    public synchronized void displayInventory() {
+    public void incrementAvailability(String roomType) {
+        inventory.put(roomType, inventory.getOrDefault(roomType, 0) + 1);
+    }
+
+    public void displayInventory() {
         System.out.println("Current Inventory:");
         for (String type : inventory.keySet()) {
             System.out.println(type + " -> " + inventory.get(type));
@@ -35,48 +67,6 @@ class RoomInventory {
     }
 }
 
-class BookingService {
-    private RoomInventory inventory;
-
-    public BookingService(RoomInventory inventory) {
-        this.inventory = inventory;
-    }
-
-    public synchronized void confirmBooking(String guestName, String roomType) {
-        if (!inventory.isAvailable(roomType)) {
-            System.out.println("Booking failed for " + guestName + " | Room: " + roomType);
-            return;
-        }
-        String roomId = UUID.randomUUID().toString();
-        inventory.decrementAvailability(roomType);
-        System.out.println("Booking confirmed: Guest " + guestName +
-                " | Room Type: " + roomType +
-                " | Room ID: " + roomId);
-    }
-}
-
-// Thread class to simulate concurrent booking
-class BookingThread extends Thread {
-    private BookingService bookingService;
-    private String guestName;
-    private String roomType;
-
-    public BookingThread(BookingService bookingService, String guestName, String roomType) {
-        this.bookingService = bookingService;
-        this.guestName = guestName;
-        this.roomType = roomType;
-    }
-
-    @Override
-    public void run() {
-        bookingService.confirmBooking(guestName, roomType);
-    }
-}
-
-// Main application
-public class BookMyStayApp {
-    public static void main(String[] args) {
-        System.out.println("=====================================");
-        System.out.println("   Book My Stay App - UC11");
-        System.out.println("   Version: 11.1");
-        System.out.println("================================
+// Persistence Service
+class PersistenceService {
+    public static void saveState(Object state, String filename
