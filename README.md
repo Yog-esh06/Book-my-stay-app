@@ -1,3 +1,4 @@
+
 # Book My Stay App
 
 ## 📖 Overview
@@ -29,11 +30,62 @@ By focusing on **core logic and system behavior** rather than user interface con
 
 ## 🛠️ Tech Stack
 - **Language:** Java (Core Java, JDK 17+ recommended)
-- **IDE:** IntelliJ IDEA
+- **IDE:** IntelliJ IDEA / Eclipse / VS Code
 - **Version Control:** Git & GitHub
 - **Persistence:** File-based serialization (UC12)
 
 ---
 
 ## 📂 Project Structure
+```
+Book-my-stay-app/
+│
+├── src/
+│   ├── BookMyStayApp.java   # Main file (updated per UC)
+│   └── Main.java            # Default IntelliJ template (not used)
+│
+├── README.md                # Project documentation
+└── system_state.ser         # Serialized state file (UC12)
+```
+
+---
+
+## ⚙️ How to Run
+
+1. **Compile the program:**
+   ```bash
+   javac src/BookMyStayApp.java
+   ```
+
+2. **Run the program:**
+   ```bash
+   java -cp src BookMyStayApp
+   ```
+
+3. **Branching Workflow:**
+   - Each UC is implemented in `BookMyStayApp.java`.
+   - Each UC has its own branch:
+     ```
+     feature/UC1
+     feature/UC2
+     ...
+     feature/UC12
+     ```
+   - Merge into `develop` after completing each UC.
+
+---
+
+## 👨‍💻 Author
+**Yogesh R Mehta**  
+Developed as part of incremental learning in Core Java and software engineering principles.
+
+---
+
+## 📌 Notes
+- Each UC is **standalone** in its branch — no cumulative code mixing.
+- `Main.java` is not required; all logic resides in `BookMyStayApp.java`.
+- Persistence file (`system_state.ser`) is generated automatically in UC12.
+
+---
+```
 
