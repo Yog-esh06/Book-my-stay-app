@@ -1,21 +1,33 @@
 /**
  * BookMyStayApp.java
  * -----------------------------------
- * UC8: Booking History & Reporting
- * Demonstrates historical tracking of reservations.
+ * UC9: Error Handling & Validation
+ * Demonstrates input validation and custom exceptions.
  *
  * @author Yogesh R Mehta
- * @version 8.1
+ * @version 9.1
  */
 
 import java.util.*;
+
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) {
+        super(message);
+    }
+}
 
 class Reservation {
     private String reservationId;
     private String guestName;
     private String roomType;
 
-    public Reservation(String guestName, String roomType) {
+    public Reservation(String guestName, String roomType) throws InvalidBookingException {
+        if (guestName == null || guestName.trim().isEmpty()) {
+            throw new InvalidBookingException("Guest name cannot be empty.");
+        }
+        if (roomType == null || roomType.trim().isEmpty()) {
+            throw new InvalidBookingException("Room type cannot be empty.");
+        }
         this.reservationId = UUID.randomUUID().toString();
         this.guestName = guestName;
         this.roomType = roomType;
@@ -33,64 +45,31 @@ class Reservation {
     }
 }
 
-// Booking History
-class BookingHistory {
-    private List<Reservation> history = new ArrayList<>();
+// Inventory service with validation
+class RoomInventory {
+    private Map<String, Integer> inventory = new HashMap<>();
 
-    public void addReservation(Reservation reservation) {
-        history.add(reservation);
-        System.out.println("Added to history: " + reservation);
-    }
-
-    public List<Reservation> getHistory() {
-        return Collections.unmodifiableList(history);
-    }
-}
-
-// Reporting Service
-class BookingReportService {
-    private BookingHistory history;
-
-    public BookingReportService(BookingHistory history) {
-        this.history = history;
-    }
-
-    public void generateReport() {
-        System.out.println("\n=== Booking Report ===");
-        List<Reservation> reservations = history.getHistory();
-        if (reservations.isEmpty()) {
-            System.out.println("No bookings found.");
-            return;
+    public void addRoomType(String roomType, int count) throws InvalidBookingException {
+        if (count < 0) {
+            throw new InvalidBookingException("Room count cannot be negative.");
         }
-        for (Reservation r : reservations) {
-            System.out.println(r);
+        inventory.put(roomType, count);
+    }
+
+    public boolean isAvailable(String roomType) throws InvalidBookingException {
+        if (!inventory.containsKey(roomType)) {
+            throw new InvalidBookingException("Invalid room type: " + roomType);
         }
-        System.out.println("Total Bookings: " + reservations.size());
+        return inventory.get(roomType) > 0;
     }
-}
 
-// Main application
-public class BookMyStayApp {
-    public static void main(String[] args) {
-        System.out.println("=====================================");
-        System.out.println("   Book My Stay App - UC8");
-        System.out.println("   Version: 8.1");
-        System.out.println("=====================================");
-
-        BookingHistory history = new BookingHistory();
-
-        // Confirmed reservations
-        Reservation r1 = new Reservation("Alice", "Single Room");
-        Reservation r2 = new Reservation("Bob", "Suite Room");
-        Reservation r3 = new Reservation("Charlie", "Double Room");
-
-        // Add to history
-        history.addReservation(r1);
-        history.addReservation(r2);
-        history.addReservation(r3);
-
-        // Generate report
-        BookingReportService reportService = new BookingReportService(history);
-        reportService.generateReport();
+    public void decrementAvailability(String roomType) throws InvalidBookingException {
+        if (!isAvailable(roomType)) {
+            throw new InvalidBookingException("No availability for room type: " + roomType);
+        }
+        inventory.put(roomType, inventory.get(roomType) - 1);
     }
-}
+
+    public void displayInventory() {
+        System.out.println("Current Inventory:");
+        for (String type : inventory.key
