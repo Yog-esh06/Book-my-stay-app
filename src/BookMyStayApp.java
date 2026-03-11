@@ -1,7 +1,6 @@
 /**
  * BookMyStayApp.java
  * -----------------------------------
- * UC1: Welcome Message
  * UC2: Basic Room Types & Static Availability
  *
  * @author Yogesh R Mehta
@@ -51,14 +50,6 @@ class SuiteRoom extends Room {
 // Main application class
 public class BookMyStayApp {
     public static void main(String[] args) {
-        // UC1: Welcome Message
-        System.out.println("=====================================");
-        System.out.println("   Welcome to Book My Stay App!");
-        System.out.println("   Hotel Booking Management System");
-        System.out.println("   Version: 2.1");
-        System.out.println("=====================================");
-
-        // UC2: Room Initialization & Availability
         int singleRoomAvailability = 5;
         int doubleRoomAvailability = 3;
         int suiteRoomAvailability = 2;
