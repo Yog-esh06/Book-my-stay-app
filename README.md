@@ -29,10 +29,11 @@ By focusing on **core logic and system behavior** rather than user interface con
 
 ## 🛠️ Tech Stack
 - **Language:** Java (Core Java, JDK 17+ recommended)
-- **IDE:** IntelliJ IDEA / Eclipse / VS Code
+- **IDE:** IntelliJ IDEA
 - **Version Control:** Git & GitHub
 - **Persistence:** File-based serialization (UC12)
 
 ---
 
 ## 📂 Project Structure
+
